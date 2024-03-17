@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/bit-wiz/data-store-a/app/queries"
 	configs "github.com/bit-wiz/data-store-a/pkg/config"
 	"github.com/bit-wiz/data-store-a/pkg/middleware"
 	"github.com/bit-wiz/data-store-a/pkg/routes"
@@ -13,6 +14,11 @@ import (
 
 func main() {
 	godotenv.Load()
+
+	err := queries.NewMongo("citizen")
+	if err != nil {
+		panic(err)
+	}
 
 	config := configs.FiberConfig()
 
