@@ -1,6 +1,8 @@
 package main
 
 import (
+	"embed"
+	"net/http"
 	"os"
 
 	"github.com/bit-wiz/data-store-a/app/queries"
@@ -9,8 +11,13 @@ import (
 	"github.com/bit-wiz/data-store-a/pkg/routes"
 	"github.com/bit-wiz/data-store-a/pkg/utils"
 	"github.com/gofiber/fiber/v2"
+
+	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/joho/godotenv"
 )
+
+//go:embed frontend/dist
+var Frontend embed.FS
 
 func main() {
 	godotenv.Load()
@@ -25,6 +32,12 @@ func main() {
 	app := fiber.New(config)
 
 	middleware.FiberMiddleware(app)
+
+	app.Use("/", filesystem.New(filesystem.Config{
+		Root:       http.FS(Frontend),
+		PathPrefix: "frontend/dist",
+		Browse:     true,
+	}))
 
 	routes.PublicRoutes(app)
 

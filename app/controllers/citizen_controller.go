@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"encoding/json"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -10,6 +12,23 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+func GetFields(c *fiber.Ctx) error {
+	fields := []string{}
+
+	for i := 0; i < reflect.ValueOf(models.Citizen{}).NumField(); i++ {
+		if (reflect.ValueOf(models.Citizen{}).Type().Field(i).Name == "ID") {
+			continue
+		}
+		fields = append(fields, reflect.ValueOf(models.Citizen{}).Type().Field(i).Tag.Get("bson"))
+	}
+
+	return c.Status(200).JSON(fiber.Map{
+		"success": true,
+		"data":    fields,
+	})
+
+}
 
 func GetAllCitizens(c *fiber.Ctx) error {
 	filter := utils.SearchQ(c.Query("s"))
@@ -24,7 +43,7 @@ func GetAllCitizens(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(fiber.Map{
+	return c.Status(200).JSON(fiber.Map{
 		"success": true,
 		"data":    data,
 	})
@@ -56,7 +75,7 @@ func GetCitizen(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(fiber.Map{
+	return c.Status(200).JSON(fiber.Map{
 		"success": true,
 		"data":    data,
 	})
@@ -64,6 +83,14 @@ func GetCitizen(c *fiber.Ctx) error {
 
 func CreateCitizen(c *fiber.Ctx) error {
 	var data models.Citizen
+
+	// parse the stringified json into the struct
+	if err := json.Unmarshal(c.Body(), &data); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"success": false,
+			"error":   "invalid JSON data",
+		})
+	}
 	c.BodyParser(&data)
 	// data.ID = fmt.Sprintf("%s_%s", data.FirstName, uuid.New().String()[0:8])
 	data.CreatedAt = time.Now()
@@ -77,7 +104,7 @@ func CreateCitizen(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(fiber.Map{
+	return c.Status(200).JSON(fiber.Map{
 		"success": true,
 		"data":    data,
 	})
@@ -101,7 +128,13 @@ func UpdateCitizen(c *fiber.Ctx) error {
 	}
 
 	var data models.Citizen
-	c.BodyParser(&data)
+	// c.BodyParser(&data) can't use this need to parse stringified json
+	if err := json.Unmarshal(c.Body(), &data); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"success": false,
+			"error":   "invalid JSON data",
+		})
+	}
 
 	data.UpdatedAt = primitive.Timestamp{T: uint32(time.Now().Unix())}
 
@@ -113,7 +146,7 @@ func UpdateCitizen(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(fiber.Map{
+	return c.Status(200).JSON(fiber.Map{
 		"success": true,
 		"data":    data,
 	})
@@ -144,7 +177,7 @@ func DeleteCitizen(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(fiber.Map{
+	return c.Status(200).JSON(fiber.Map{
 		"success": true,
 		"data":    "deleted",
 	})

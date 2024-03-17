@@ -19,7 +19,7 @@ type Mongo struct {
 var DB Mongo
 
 func NewMongo(name string) error {
-	opts := options.Client().ApplyURI(os.Getenv("MONGO_ME"))
+	opts := options.Client().ApplyURI(os.Getenv("MONGO_URI"))
 	client, err := mongo.Connect(context.Background(), opts)
 	if err != nil {
 		return err

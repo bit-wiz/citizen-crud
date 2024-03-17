@@ -10,6 +10,7 @@ func PublicRoutes(a *fiber.App) {
 
 	// citizen routes
 	route.Get("/", controllers.Root)
+	route.Get("/fields", controllers.GetFields)
 	route.Get("/allcitizen", controllers.GetAllCitizens)
 	route.Get("/citizen/:id", controllers.GetCitizen)
 	route.Post("/citizen", controllers.CreateCitizen)
